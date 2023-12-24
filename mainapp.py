@@ -2,6 +2,12 @@ from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 import heapq
 import requests
+from flask_socketio import SocketIO, emit
+import time
+app = Flask(__name__, static_url_path='')
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+
 host = "https://api.gateio.ws"
 prefix = "/api/v4"
 headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
@@ -11,20 +17,17 @@ query_param = 'contract=BTC_USDT'
 r = requests.request('GET', host + prefix + url + "?" + query_param, headers=headers)
 
 response_json = r.json()
-
 current = response_json.get('current')
 id = response_json.get('id')
 update = response_json.get('update')
 
-asks = [[float(ask['p']), ask['s']] for ask in response_json.get('asks')]
+asks  = [[float(ask['p']), ask['s']] for ask in response_json.get('asks')]
 bids = [[float(bid['p']), bid['s']] for bid in response_json.get('bids')]
 
 order_book1 = {
     'asks': asks,
     'bids': bids
 }
-app = Flask(__name__,static_url_path='')
-CORS(app)
 
 class OrderBook:
     def __init__(self):
@@ -67,34 +70,14 @@ for ask in order_book1['asks']:
     ask_quantity = ask[1]  # Access the quantity
     order_book.add_limit_order(False, ask_price, ask_quantity)
 
-"""from random import uniform
-import numpy as np
-"""
-"""def add_random_orders(n):
-    base_price = 100.0  # Set the base price
-    desired_spread = 3.0  # Set the desired spread
-    price_range = 30.0  # Set the range for price generation
-    max_quantity = 1000  # Set the maximum quantity
-    for _ in range(n):
-        bid_price = round(base_price + uniform(0, price_range), 2)  # Generate a random bid price above the base price
-        ask_price = round(base_price - uniform(0, price_range), 2)  # Generate a random ask price below the base price
-
-        # Generate a quantity based on the price using a non-linear function
-        bid_quantity = max(1, int(max_quantity * np.exp(-0.05 * (bid_price - base_price))))
-        ask_quantity = max(1, int(max_quantity * np.exp(0.05 * (ask_price - base_price))))
-
-        # Adjust the bid and ask prices if the spread is not within the desired range
-        if bid_price - ask_price < desired_spread:
-            bid_price = ask_price + desired_spread
-
-        order_book.add_limit_order(True, bid_price, bid_quantity)  # Add the bid
-        order_book.add_limit_order(False, ask_price, ask_quantity)  # Add the ask
-
-add_random_orders(20)  # Add 40 random orders
-"""
+def emit_orderbook():
+    bids = [(-price, order.quantity) for price, order in order_book.bids]
+    asks = [(price, order.quantity) for price, order in order_book.asks]
+    socketio.emit('orderbook', {'bids': bids, 'asks': asks})
 
 @app.route('/api/orderbook', methods=['GET'])
 def get_orderbook():
+    emit_orderbook()
     bids = [(-price, order.quantity) for price, order in order_book.bids]
     asks = [(price, order.quantity) for price, order in order_book.asks]
     return jsonify({'bids': bids, 'asks': asks})
@@ -110,5 +93,19 @@ def get_quote():
 def home():
     return render_template('index.html')
 
+def fetch_order_book():
+    while True:
+        r = requests.request('GET', host + prefix + url + "?" + query_param, headers=headers)
+        response_json = r.json()
+        asks = [[float(bid['p']), bid['s']] for bid in response_json.get('bids')][:]  # Exclude the first ask
+        bids = [[float(ask['p']), ask['s']] for ask in response_json.get('asks')]
+        order_book = {'asks': asks, 'bids': bids}  # Swap bids and asks here
+        socketio.emit('orderbook', order_book)
+        time.sleep(0.2)
+
+@socketio.on('connect')
+def handle_connect():
+    socketio.start_background_task(fetch_order_book)
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=6005)
+    socketio.run(app, host='0.0.0.0', port=6005)

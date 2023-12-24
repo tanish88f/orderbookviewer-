@@ -5,6 +5,9 @@ body {
     padding: 20px;
     background-color: #f5f5f5;
     overflow: auto;
+    background-image: url('background.webp');
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .container {
@@ -22,11 +25,12 @@ body {
 
 .orderbook td, .orderbook th {
     width: 33.33%;
-    border: 1px solid #ddd;
+    border: 1px solid black; /* Make the borders thicker and black */
     padding: 4px;
-    text-align: right;
+    text-align: center;
     font-size: 0.6em;
 }
+
 .orderbook table {
     width: 100%;
     border-collapse: collapse;
