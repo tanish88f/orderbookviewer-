@@ -1,28 +1,23 @@
-import unittest
-from flask_testing import TestCase
-from index import app, OrderBook, Order
+import requests
+host = "https://api.gateio.ws"
+prefix = "/api/v4"
+headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
 
-order_book = OrderBook()
+url = '/futures/usdt/order_book'
+query_param = 'contract=BTC_USDT'
+r = requests.request('GET', host + prefix + url + "?" + query_param, headers=headers)
 
-class TestOrderBook(unittest.TestCase):
-    def test_add_limit_order(self):
-        order_book.add_limit_order(True, 100, 10)
-        self.assertEqual(order_book.bids[0], (-100, Order(100, 10)))
+response_json = r.json()
 
-class TestRoutes(TestCase):
-    def create_app(self):
-        app.config['TESTING'] = True
-        return app
+current = response_json.get('current')
+id = response_json.get('id')
+update = response_json.get('update')
 
-    def test_orderbook_route(self):
-        response = self.client.get('/api/orderbook')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, {'bids': [[100, 10]], 'asks': []})
+asks = [[float(ask['p']), ask['s']] for ask in response_json.get('asks')]
+bids = [[float(bid['p']), bid['s']] for bid in response_json.get('bids')]
 
-    def test_quote_route(self):
-        response = self.client.get('/api/quote')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, {'bid': 100, 'ask': None})
-
-if __name__ == '__main__':
-    unittest.main()
+order_book = {
+    'asks': asks,
+    'bids': bids
+}
+print(order_book)

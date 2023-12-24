@@ -1,8 +1,29 @@
 from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 import heapq
+import requests
+host = "https://api.gateio.ws"
+prefix = "/api/v4"
+headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
+url = '/futures/usdt/order_book'
+query_param = 'contract=BTC_USDT'
+r = requests.request('GET', host + prefix + url + "?" + query_param, headers=headers)
+
+response_json = r.json()
+
+current = response_json.get('current')
+id = response_json.get('id')
+update = response_json.get('update')
+
+asks = [[float(ask['p']), ask['s']] for ask in response_json.get('asks')]
+bids = [[float(bid['p']), bid['s']] for bid in response_json.get('bids')]
+
+order_book1 = {
+    'asks': asks,
+    'bids': bids
+}
+app = Flask(__name__,static_url_path='')
 CORS(app)
 
 class OrderBook:
@@ -34,10 +55,22 @@ class Order:
 
 order_book = OrderBook()
 
-from random import uniform
-import numpy as np
+# Add bids to the order book
+for bid in order_book1['bids']:
+    bid_price = float(bid[0])  # Access the price
+    bid_quantity = bid[1]  # Access the quantity
+    order_book.add_limit_order(True, bid_price, bid_quantity)
 
-def add_random_orders(n):
+# Add asks to the order book
+for ask in order_book1['asks']:
+    ask_price = float(ask[0])  # Access the price
+    ask_quantity = ask[1]  # Access the quantity
+    order_book.add_limit_order(False, ask_price, ask_quantity)
+
+"""from random import uniform
+import numpy as np
+"""
+"""def add_random_orders(n):
     base_price = 100.0  # Set the base price
     desired_spread = 3.0  # Set the desired spread
     price_range = 30.0  # Set the range for price generation
@@ -58,7 +91,7 @@ def add_random_orders(n):
         order_book.add_limit_order(False, ask_price, ask_quantity)  # Add the ask
 
 add_random_orders(20)  # Add 40 random orders
-
+"""
 
 @app.route('/api/orderbook', methods=['GET'])
 def get_orderbook():
@@ -78,4 +111,4 @@ def home():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=6006)
+    app.run(host='0.0.0.0', port=6005)

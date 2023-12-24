@@ -1,5 +1,5 @@
 function fetchOrderBook() {
-    return fetch('http://localhost:6006/api/orderbook')
+    return fetch('http://localhost:6005/api/orderbook')
         .then(response => response.json())
         .catch(error => console.error('Error:', error));
 }
