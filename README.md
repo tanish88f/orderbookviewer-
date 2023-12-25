@@ -17,17 +17,18 @@ One of the key features of this application is the implementation of Monte Carlo
 
 - A modern web browser
 - Python 3
+- Docker
 
 ### Installation
 
 1. Clone the repository: `git clone https://github.com/your_username_/Project-Name.git`
 2. Navigate to the project directory: `cd Project-Name`
-3. Install Python packages: `pip install -r requirements.txt`
+3. Build the Docker image: `docker build -t your_username/project_name .`
 
 ## Usage
 
-1. Start the backend server: `python index.py`
-2. Open `index.html` in your web browser to view the real-time order book.
+1. Run the Docker container: `docker run -p 6006:6006 your_username/project_name`
+2. Open your web browser and navigate to `http://localhost:6006` to view the real-time order book.
 
 ## Contributing
 
