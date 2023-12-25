@@ -16,7 +16,7 @@ One of the key features of this application is the implementation of Monte Carlo
 ### Prerequisites
 
 - A modern web browser
-- Python 3
+- Python 
 - Docker
 
 ### Installation
@@ -27,8 +27,8 @@ One of the key features of this application is the implementation of Monte Carlo
 
 ## Usage
 
-1. Run the Docker container: `docker run -p 6006:6006 your_username/project_name`
-2. Open your web browser and navigate to `http://localhost:6006` to view the real-time order book.
+1. Run the Docker container: `docker run -p 6005:6005 your_username/project_name`
+2. Open your web browser and navigate to `http://localhost:6005` to view the real-time order book.
 
 ## Contributing
 
