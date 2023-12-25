@@ -11,12 +11,9 @@ ADD . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Make port 5000 available to the world outside this container
-EXPOSE 6006
+EXPOSE 6005
 
 # Run app.py when the container launches
-CMD ["python", "index.py"]
-
-FROM nginx:latest
-COPY index.html /usr/share/nginx/html/templates/index.html
+CMD ["python", "mainapp.py"]
 # Path: requirements.txt
 # Flask==1.1.2

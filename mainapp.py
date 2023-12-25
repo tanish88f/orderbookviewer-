@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request
-from flask_cors import CORS
 import heapq
 import requests
 from flask_socketio import SocketIO
@@ -129,4 +128,4 @@ def handle_connect():
     socketio.start_background_task(fetch_order_book)
     socketio.start_background_task(fetch_pricepaths)
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=6005)
+    socketio.run(app, host='0.0.0.0', port=6005, allow_unsafe_werkzeug=True)

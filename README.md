@@ -1,13 +1,17 @@
-# Order Book Viewer
+# Real-Time Order Book Viewer with Monte Carlo Simulations
 
-This project is a simple order book viewer. It fetches order book data from a server and displays it in a table format on a webpage. The order book data includes bid and ask prices.
+Welcome to the Real-Time Order Book Viewer, a dynamic and interactive application designed to provide real-time bid and ask prices fetched from a server. This project showcases the power of WebSockets in creating a live, data-rich, and responsive user interface. 
 
-The project is divided into two main parts:
+One of the key features of this application is the implementation of Monte Carlo simulations. These simulations are used to predict the future behavior of the order book, providing valuable insights and aiding in decision-making processes.
 
-1. `index.py`: This is the backend of the project. It fetches order book data from a server.
-2. `index.html`: This is the frontend of the project. It displays the order book data fetched from the server in a table format.
+## Features
 
-To get a local copy up and running, follow these steps:
+1. **Real-Time Data**: Leveraging the power of WebSockets, our application provides real-time updates of bid and ask prices.
+2. **Monte Carlo Simulations**: Our application uses Monte Carlo simulations to predict future behavior of the order book, providing valuable insights.
+3. **Interactive UI**: The data is presented in an easy-to-understand table format, color-coded for bids and asks.
+4. **Robust Backend**: The backend, written in Python, efficiently fetches and processes data from the server.
+
+## Getting Started
 
 ### Prerequisites
 
@@ -16,17 +20,18 @@ To get a local copy up and running, follow these steps:
 
 ### Installation
 
-1. Clone the repo: `git clone https://github.com/your_username_/Project-Name.git`
-2. Install Python packages: `pip install -r requirements.txt`
+1. Clone the repository: `git clone https://github.com/your_username_/Project-Name.git`
+2. Navigate to the project directory: `cd Project-Name`
+3. Install Python packages: `pip install -r requirements.txt`
 
 ## Usage
 
-1. Run the backend server: `python index.py`
-2. Open `index.html` in your web browser to look at the orderbook.
+1. Start the backend server: `python index.py`
+2. Open `index.html` in your web browser to view the real-time order book.
 
-You should now see a table displaying the order book data, including bid and ask prices.
+## Contributing
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
+We welcome contributions from everyone. Here's how you can contribute:
 
 1. Fork the Project
 2. Create your Feature Branch: `git checkout -b feature/AmazingFeature`
@@ -34,8 +39,14 @@ Contributions are what make the open-source community such an amazing place to l
 4. Push to the Branch: `git push origin feature/AmazingFeature`
 5. Open a Pull Request
 
+## License
+
 This project is distributed under the MIT License. See `LICENSE` for more information.
 
-For any queries, you can reach out at example@example.com.
+## Contact
+
+For any queries or feedback, please reach out at example@example.com.
+
+Join us in creating a dynamic and interactive real-time order book viewer with Monte Carlo simulations!
 
 Please replace the placeholders with your actual GitHub username, project name, and contact information.
