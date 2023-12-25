@@ -1,9 +1,11 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, render_template, request
 from flask_cors import CORS
 import heapq
 import requests
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 import time
+import numpy as np
+
 app = Flask(__name__, static_url_path='')
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -15,19 +17,6 @@ headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
 url = '/futures/usdt/order_book'
 query_param = 'contract=BTC_USDT'
 r = requests.request('GET', host + prefix + url + "?" + query_param, headers=headers)
-
-response_json = r.json()
-current = response_json.get('current')
-id = response_json.get('id')
-update = response_json.get('update')
-
-asks  = [[float(ask['p']), ask['s']] for ask in response_json.get('asks')]
-bids = [[float(bid['p']), bid['s']] for bid in response_json.get('bids')]
-
-order_book1 = {
-    'asks': asks,
-    'bids': bids
-}
 
 class OrderBook:
     def __init__(self):
@@ -56,42 +45,20 @@ class Order:
             return NotImplemented
         return self.price < other.price
 
-order_book = OrderBook()
 
-# Add bids to the order book
-for bid in order_book1['bids']:
-    bid_price = float(bid[0])  # Access the price
-    bid_quantity = bid[1]  # Access the quantity
-    order_book.add_limit_order(True, bid_price, bid_quantity)
-
-# Add asks to the order book
-for ask in order_book1['asks']:
-    ask_price = float(ask[0])  # Access the price
-    ask_quantity = ask[1]  # Access the quantity
-    order_book.add_limit_order(False, ask_price, ask_quantity)
-
-def emit_orderbook():
-    bids = [(-price, order.quantity) for price, order in order_book.bids]
-    asks = [(price, order.quantity) for price, order in order_book.asks]
-    socketio.emit('orderbook', {'bids': bids, 'asks': asks})
-
-@app.route('/api/orderbook', methods=['GET'])
-def get_orderbook():
-    emit_orderbook()
-    bids = [(-price, order.quantity) for price, order in order_book.bids]
-    asks = [(price, order.quantity) for price, order in order_book.asks]
-    return jsonify({'bids': bids, 'asks': asks})
-
-@app.route('/api/quote', methods=['GET'])
-def get_quote():
-    best_bid = -order_book.bids[0][0] if order_book.bids else None
-    best_ask = order_book.asks[0][0] if order_book.asks else None
-    return jsonify({'bid': best_bid, 'ask': best_ask})
 
 @app.route('/')
 @app.route('/home')
 def home():
     return render_template('index.html')
+
+@app.route('/update_symbol', methods=['POST'])
+def update_symbol():
+    data = request.get_json()
+    symbol = data['symbol']
+    global query_param
+    query_param = f'contract={symbol}'
+    return {'status': 'success'}
 
 def fetch_order_book():
     while True:
@@ -101,11 +68,65 @@ def fetch_order_book():
         bids = [[float(ask['p']), ask['s']] for ask in response_json.get('asks')]
         order_book = {'asks': asks, 'bids': bids}  # Swap bids and asks here
         socketio.emit('orderbook', order_book)
-        time.sleep(0.2)
+        time.sleep(0.1)
+
+def fetch_pricepaths():
+    while True:
+        r = requests.request('GET', host + prefix + url + "?" + query_param, headers=headers)
+        response_json = r.json()
+        asks = [[float(bid['p']), bid['s']] for bid in response_json.get('bids')][:]  # Exclude the first ask
+        bids = [[float(ask['p']), ask['s']] for ask in response_json.get('asks')]
+        price_paths = monte()
+        socketio.emit('price_paths', price_paths)
+        time.sleep(0.1)
+
+    
+def generate_price_paths(mid_price_func, num_paths, num_steps, drift, volatility, time):
+    dt = time / num_steps
+    price_paths = []
+
+    for _ in range(num_paths):
+        price_path = [mid_price_func()]  # Initial mid-price
+        for _ in range(num_steps):
+            z = np.random.standard_normal()
+            price = price_path[-1] * np.exp((drift - 0.5 * volatility**2) * dt + volatility * np.sqrt(dt) * z)
+            price_path.append(price)
+        price_paths.append(price_path)
+    
+    return price_paths
+
+def simple_mid_price():
+    r = requests.request('GET', host + prefix + url + "?" + query_param, headers=headers)
+    response_json = r.json()
+    asks = [[float(bid['p']), bid['s']] for bid in response_json.get('bids')][:]  # Exclude the first ask
+    bids = [[float(ask['p']), ask['s']] for ask in response_json.get('asks')]
+    mid_price = (asks[0][0] + bids[0][0]) / 2
+    return mid_price
+
+def monte():
+    # Parameters for the simulation
+    num_simulations = 10  # Number of simulated price paths
+    num_time_steps = 100  # Number of time steps
+    drift_value = 0.1  # Drift parameter for GBM
+    volatility_value = 0.2  # Volatility parameter for GBM
+    total_time = 1.0  # Total time horizon for simulation
+
+    # Generate price paths using the chosen mid-price function
+    price_paths = generate_price_paths(simple_mid_price, num_simulations, num_time_steps, drift_value, volatility_value, total_time)
+    return price_paths
+
+@socketio.on('symbol_change')
+def handle_symbol_change(symbol):
+    # Fetch new price paths for the new symbol
+    new_price_paths = monte(symbol)
+
+    # Emit a 'price_paths' event with the new price paths
+    socketio.emit('price_paths', new_price_paths)
+
 
 @socketio.on('connect')
 def handle_connect():
     socketio.start_background_task(fetch_order_book)
-
+    socketio.start_background_task(fetch_pricepaths)
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=6005)

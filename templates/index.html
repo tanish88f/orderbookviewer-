@@ -1,26 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Order Book</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Order Book</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
 </head>
 <body>
-    <h1>Order Book</h1>
-    <div class="orderbook">
-        <div id="bids" class="bids orders">
-            <table>
-                <tr>
-                    <th>Price</th>
-                    <th>Volume</th>
-                </tr>
-            </table>
+    <h1 class="title">Order Book<span class="spacer"></span>Monte Carlo Simulation</h1>
+    <div class="container">
+        <div class="orderbook">
+            <div id="bids" class="bids orders">
+                <table>
+                    <tr>
+                        <th>Price</th>
+                        <th>Volume</th>
+                    </tr>
+                </table>
+            </div>
+            <div id="asks" class="asks orders">
+                <table>
+                </table>
+            </div>
         </div>
-        <div id="asks" class="asks orders">
-            <table>
-            </table>
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
         </div>
     </div>
+    <select id="symbol-select">
+        <option value="BTC_USDT">BTC_USDT</option>
+        <option value="ETH_USDT">ETH_USDT</option>
+        <option value="LTC_USDT">LTC_USDT</option>
+        <option value="XRP_USDT">XRP_USDT</option>
+        <option value="BCH_USDT">BCH_USDT</option>
+    </select>
+    <button id="update-button">Update</button>
     <script src="app.js"></script>
 </body>
 </html>

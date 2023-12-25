@@ -1,4 +1,5 @@
 const socket = io.connect('http://localhost:6005');
+let chart;
 
 socket.on('connect', () => {
     console.log('Connected to server');
@@ -49,6 +50,69 @@ function populateTable(tableId, data, isBid) {
         row.style.backgroundColor = isBid ? `rgb(${colorIntensity}, 255, ${colorIntensity})` : `rgb(255, ${colorIntensity}, ${colorIntensity})`; 
     });
 }
+document.getElementById('update-button').addEventListener('click', function() {
+    const symbol = document.getElementById('symbol-select').value;
+    fetch('/update_symbol', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ symbol: symbol }),
+    });
+});
+
+
+window.onload = function() {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    chart = new Chart(ctx, { // Assign to chart here
+        type: 'line',
+        data: {
+            labels: [], // This will be filled with the indices of the data array
+            datasets: [{
+                label: '',
+                data: [],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            animation: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+};
+
+function clearChart(chart) {
+    chart.data.labels = [];
+    chart.data.datasets = [];
+    chart.update();
+}
+socket.on('price_paths', (pricePaths) => {
+    // Clear the chart
+    clearChart(chart);
+
+    // Add the new price paths to the chart
+    chart.data.labels = Array.from({length: pricePaths[0].length}, (_, i) => i + 1);
+    pricePaths.forEach((pricePath, index) => {
+        chart.data.datasets.push({
+            label: 'Price Path ' + (index + 1),
+            data: pricePath,
+            backgroundColor: 'rgba(0, 0, 0, 0)', // Transparent background
+            borderColor: `hsl(${index * 360 / pricePaths.length}, 100%, 50%)`, // Different color for each path
+            borderWidth: 1,
+            lineTension: 0, // Makes the line straight instead of curved
+            pointRadius: 0, // Hides the points along the line
+        });
+    });
+
+    // Update the chart
+    chart.update();
+});
 
 socket.on('orderbook', (orderBook) => {
     const sortedBids = orderBook.bids.sort((a, b) => b[0] - a[0]);

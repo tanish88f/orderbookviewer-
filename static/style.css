@@ -9,10 +9,11 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
 }
-
 .container {
-    width: 40%;
-    margin-left: auto;
+    display: flex;
+}
+.spacer {
+    margin-left: 320px;  /* Adjust as needed */
 }
 
 .orderbook {
@@ -22,6 +23,13 @@ body {
     width: 15%;
     border: 1px solid #000; /* Adds border to the table */
 }
+
+.chart-container {
+    display: flex;
+    margin-left: 200px; /* Adjust this value to move the chart to the right */
+    width: 600px; /* Adjust this value to change the width of the chart */
+    height: 400px; /* Adjust this value to change the height of the chart */
+}   
 
 .orderbook td, .orderbook th {
     width: 33.33%;
