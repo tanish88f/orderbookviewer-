@@ -46,7 +46,7 @@ This project is distributed under the MIT License. See `LICENSE` for more inform
 
 ## Contact
 
-For any queries or feedback, please reach out at example@example.com.
+For any queries or feedback, please reach out.
 
 Join us in creating a dynamic and interactive real-time order book viewer with Monte Carlo simulations!
 
